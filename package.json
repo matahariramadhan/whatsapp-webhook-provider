@@ -4,7 +4,7 @@
   "description": "saatnya.id whatsapp bot",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -12,11 +12,16 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
+    "mongoose": "^7.4.3",
     "openai": "^3.3.0",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.22.1"
   },
   "devDependencies": {
-    "@types/qrcode-terminal": "^0.12.0"
+    "@types/jest": "^29.5.3",
+    "@types/mongoose": "^5.11.97",
+    "@types/qrcode-terminal": "^0.12.0",
+    "jest": "^29.6.2",
+    "ts-jest": "^29.1.1"
   }
 }

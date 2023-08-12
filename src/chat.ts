@@ -2,20 +2,21 @@ import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 
 interface ChatSession {
-  user: string;
-  messages: {
-    role: "user" | "assistant";
-    content: string;
-  }[];
+  createdAt: number;
+  messages: Message[];
 }
+
+type UserSession = Map<string, ChatSession>;
 
 class ChatBot {
   client: Client;
-  chatSession: Map<string, ChatSession>;
+  private userSession: UserSession;
+  private messageHandler: (message: Message[]) => Promise<string>;
 
   constructor(client: Client) {
-    this.chatSession = new Map();
+    this.userSession = new Map();
     this.client = client;
+    this.messageHandler = () => new Promise(() => "");
   }
 
   static async build(): Promise<ChatBot> {
@@ -34,17 +35,59 @@ class ChatBot {
     return new ChatBot(client);
   }
 
-  handleMessage(cb: (message: Message) => Promise<void>) {
-    this.client.on("message", async (message) => {
-      const chat = await this.client.getChatById(message.from);
-      await chat.sendStateTyping();
+  registerMessageHandler(
+    messageHandler: (message: Message[]) => Promise<string>
+  ) {
+    this.messageHandler = messageHandler;
+  }
 
-      await cb(message);
+  private async sendTypingStatus(from: string) {
+    const chat = await this.client.getChatById(from);
+    await chat.sendStateTyping();
+  }
+
+  private async handleMessage(
+    message: Message,
+    chatSession: ChatSession
+  ): Promise<Message> {
+    await this.sendTypingStatus(message.from);
+    const res = await this.messageHandler(chatSession.messages);
+    return await message.reply(res);
+  }
+
+  private createNewSession(sessionId: string) {
+    this.userSession.set(sessionId, {
+      createdAt: Date.now(),
+      messages: [],
     });
   }
 
+  private async handleSession(message: Message) {
+    const sessionId = message.from;
+    if (!this.userSession.get(sessionId)) {
+      this.createNewSession(sessionId);
+    }
+
+    let chatSession = this.userSession.get(sessionId);
+    if (!chatSession) {
+      throw new Error(`Chat messages are ${chatSession}`);
+    }
+    chatSession.messages.push(message);
+
+    const replyMessage = await this.handleMessage(message, chatSession);
+
+    chatSession.messages.push(replyMessage);
+    this.userSession.set(message.from, chatSession);
+  }
+
   async listen() {
-    this.client.initialize();
+    this.client.on("message", async (message) => {
+      await this.handleSession(message);
+
+      // check usersession
+      console.log(this.userSession.get(message.from));
+    });
+    await this.client.initialize();
   }
 }
 
