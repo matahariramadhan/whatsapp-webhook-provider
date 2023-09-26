@@ -1,7 +1,7 @@
 {
-  "name": "whatsapp-bot",
+  "name": "whatsapp-webhook-provider",
   "version": "1.0.0",
-  "description": "saatnya.id whatsapp bot",
+  "description": "Whatsapp webhook provider built on top whatsappwebjs (unofficial whatsapp client)",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
@@ -9,7 +9,7 @@
     "start": "node dist/index.js"
   },
   "author": "matahari ramadhan",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "dotenv": "^16.3.1",
     "mongoose": "^7.4.3",
